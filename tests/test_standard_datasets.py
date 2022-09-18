@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 
+
 pd.set_option('display.max_rows', 50)
 pd.set_option('display.max_columns', 10)
 pd.set_option('display.width', 200)
@@ -10,12 +11,16 @@ from aif360.datasets import BankDataset
 from aif360.datasets import CompasDataset
 from aif360.datasets import GermanDataset
 from aif360.metrics import BinaryLabelDatasetMetric
+from aif360.datasets import diabetes_dataset
 
 
 def test_compas():
     # just test that there are no errors for default loading...
     cd = CompasDataset()
     # print(cd)
+
+def test_diabetes():
+    dd = diabetes_dataset.DiabetesDataset()
 
 def test_german():
     gd = GermanDataset()

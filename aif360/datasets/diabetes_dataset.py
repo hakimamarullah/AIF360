@@ -5,6 +5,7 @@ import pandas as pd
 from aif360.datasets import StandardDataset
 
 default_mappings = {
+    'label_maps': [{1.0: 'NO', 2.0: '<30', 3.0: '>30'}],
     'protected_attribute_maps': [
         {1.0: 'Emergency', 2.0: 'Urgent', 3.0: 'Elective', 4.0: 'Newborn',
          5.0: 'Not Available', 6.0: 'NULL', 7.0: 'Trauma Center', 8.0: 'Not Mapped'
@@ -60,7 +61,7 @@ class DiabetesDataset(StandardDataset):
     See :file:`aif360/data/raw/diabetes/README.md`.
     """
 
-    def __init__(self, label_name='readmitted ',
+    def __init__(self, label_name='readmitted',
                  favorable_classes=['<30'],
                  protected_attribute_names=[
                      'admission_type_id', 'discharge_disposition_id', 'admission_source_id'],
@@ -75,8 +76,20 @@ class DiabetesDataset(StandardDataset):
                                        'glyburide-metformin', 'glipizide-metformin',
                                        'glimepiride-pioglitazone', 'metformin-rosiglitazone',
                                        'metformin-pioglitazone', 'change', 'diabetesMed', 'readmitted'],
-                 features_to_keep=[],
-                 features_to_drop=['weight'],
+                 features_to_keep=['encounter_id', 'patient_nbr', 'race', 'gender', 'age', 'weight', 'admission_type_id',
+                                   'discharge_disposition_id', 'admission_source_id', 'time_in_hospital',
+                                   'payer_code', 'medical_specialty', 'num_lab_procedures',
+                                   'num_procedures', 'num_medications', 'number_outpatient',
+                                   'number_emergency', 'number_inpatient', 'diag_1', 'diag_2', 'diag_3',
+                                   'number_diagnoses', 'max_glu_serum', 'A1Cresult', 'metformin',
+                                   'repaglinide', 'nateglinide', 'chlorpropamide', 'glimepiride',
+                                   'acetohexamide', 'glipizide', 'glyburide', 'tolbutamide',
+                                   'pioglitazone', 'rosiglitazone', 'acarbose', 'miglitol', 'troglitazone',
+                                   'tolazamide', 'examide', 'citoglipton', 'insulin',
+                                   'glyburide-metformin', 'glipizide-metformin',
+                                   'glimepiride-pioglitazone', 'metformin-rosiglitazone',
+                                   'metformin-pioglitazone', 'change', 'diabetesMed', 'readmitted'],
+                 features_to_drop=['weight', 'payer_code'],
                  na_values=['?'],
                  custom_preprocessing=None,
                  metadata=default_mappings):
@@ -86,7 +99,7 @@ class DiabetesDataset(StandardDataset):
                                 '..', 'data', 'raw', 'diabetes', 'diabetic_data.csv')
 
         try:
-            df = pd.read_csv(filepath, sep=';', na_values=na_values)
+            df = pd.read_csv(filepath, sep=',', na_values=na_values)
         except IOError as err:
             print("IOError: {}".format(err))
             print("To use this class, please download the following file:")
