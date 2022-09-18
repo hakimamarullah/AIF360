@@ -5,13 +5,14 @@ from numpy.testing import assert_array_equal
 import pandas as pd
 from pandas.api.types import is_numeric_dtype
 from pandas.testing import assert_frame_equal
+from aif360.sklearn.datasets.diabetes_dataset import fetch_diabetes
 import pytest
 from sklearn.compose import make_column_transformer
 from sklearn.preprocessing import OneHotEncoder, minmax_scale
 
 from aif360.datasets import (
     AdultDataset, GermanDataset, CompasDataset, LawSchoolGPADataset,
-    MEPSDataset19, MEPSDataset20, MEPSDataset21)
+    MEPSDataset19, MEPSDataset20, MEPSDataset21, diabetes_dataset)
 from aif360.sklearn.datasets import (
     standardize_dataset, NumericConversionWarning, fetch_adult, fetch_bank,
     fetch_german, fetch_compas, fetch_lawschool_gpa, fetch_meps)
@@ -226,6 +227,54 @@ def test_lawschool_matches_old():
     law = law.convert_to_dataframe()[0].drop(columns=law.label_names)
 
     assert_array_equal(minmax_scale(X), law)
+
+@pytest.mark.parametrize("panel", [19, 20, 21])
+def test_cache_meps(panel):
+    """Tests if cached MEPS matches raw."""
+    meps_raw = fetch_meps(panel, cache=False, accept_terms=True)[0]
+    fetch_meps(panel, cache=True, accept_terms=True)
+    meps_cached = fetch_meps(panel, cache=True)[0]
+    assert_frame_equal(meps_raw, meps_cached, check_dtype=False)
+    assert_array_equal(meps_raw.to_numpy(), meps_cached.to_numpy())
+
+@pytest.mark.parametrize(
+    "panel, cls",
+    [(19, MEPSDataset19), (20, MEPSDataset20), (21, MEPSDataset21)])
+def test_meps_matches_old(panel, cls):
+    """Tests MEPS datasets match original versions."""
+    usecols = ['REGION', 'AGE', 'SEX', 'RACE', 'MARRY', 'FTSTU',
+               'ACTDTY', 'HONRDC', 'RTHLTH', 'MNHLTH', 'HIBPDX',
+               'CHDDX', 'ANGIDX', 'MIDX', 'OHRTDX', 'STRKDX', 'EMPHDX',
+               'CHBRON', 'CHOLDX', 'CANCERDX', 'DIABDX', 'JTPAIN',
+               'ARTHDX', 'ARTHTYPE', 'ASTHDX', 'ADHDADDX', 'PREGNT',
+               'WLKLIM', 'ACTLIM', 'SOCLIM', 'COGLIM', 'DFHEAR42',
+               'DFSEE42', 'ADSMOK42', 'PCS42', 'MCS42', 'K6SUM42',
+               'PHQ242', 'EMPST', 'POVCAT', 'INSCOV']
+    educols = ['EDUCYR', 'HIDEG']
+    meps = fetch_meps(panel, accept_terms=True, usecols=usecols + educols)
+    assert len(meps) == 3
+    meps.X.RACE = meps.X.RACE.factorize(sort=True)[0]
+    MEPS = cls()
+    assert_array_equal(pd.get_dummies(meps.X.drop(columns=educols)), MEPS.features)
+    assert_array_equal(meps.y.factorize(sort=True)[0], MEPS.labels.ravel())
+
+@pytest.mark.parametrize("panel", [19, 20, 21])
+def test_fetch_meps(panel):
+    """Tests MEPS datasets shapes with various options."""
+    meps = fetch_meps(panel, accept_terms=True, dropna=False)
+    meps_dropna = fetch_meps(panel, dropna=True)
+    assert meps_dropna.X.shape[0] < meps.X.shape[0]
+    meps_numeric = fetch_meps(panel, accept_terms=True, numeric_only=True)
+    assert meps_numeric.X.shape[1] == 5
+
+def test_fetch_diabetes():
+    """Tests Diabetes dataset shapes with various options."""
+    diabetes = fetch_diabetes()
+    assert len(diabetes) == 2
+    assert diabetes.X.shape == (101766, 46)
+    assert fetch_diabetes(dropcols=None).X.shape == (101766, 46)
+    assert fetch_diabetes(numeric_only=True).X.shape == (101766, 12)
+    assert fetch_diabetes(numeric_only=True, dropna=False).X.shape ==  (101766, 12)
 
 @pytest.mark.parametrize("panel", [19, 20, 21])
 def test_cache_meps(panel):
