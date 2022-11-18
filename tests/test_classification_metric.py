@@ -191,6 +191,13 @@ def test_generalized_binary_confusion_matrix():
  
     gtp = cm.num_generalized_true_positives()
     assert round(gtp,2) == 5.31
+
+    gtp_privileged_true = cm.num_generalized_true_positives(privileged=True)
+    assert round(gtp_privileged_true,2) == 2.68
+
+    gtp_privileged_false = cm.num_generalized_true_positives(privileged=False)
+    assert round(gtp_privileged_false,2) == 2.63
+    
     gfp = cm.num_generalized_false_positives()
     assert gfp == 1.09
    

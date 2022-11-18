@@ -9,6 +9,7 @@ __pycache__/
 .venv
 .idea/
 .vscode/
+venv/
 
 .eggs/
 aif360.egg-info
